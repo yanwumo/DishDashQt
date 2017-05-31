@@ -4,6 +4,7 @@
 #include <QString>
 #include <QStringList>
 #include <QStringListIterator>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -16,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(orderRequest()));
     timer->start(30000);
-
+    orderRequest();
 }
 
 MainWindow::~MainWindow()
@@ -26,10 +27,11 @@ MainWindow::~MainWindow()
 
 void MainWindow::orderRequest()
 {
+    qDebug() << "Request";
     manager->get(QNetworkRequest(QUrl("http://localhost/get_orders.php")));
 }
 
-void replyFinished(QNetworkReply *reply)
+void MainWindow::replyFinished(QNetworkReply *reply)
 {
     QTextCodec *codec = QTextCodec::codecForName("utf8");
     QString all = codec->toUnicode(reply->readAll());
@@ -46,7 +48,8 @@ void replyFinished(QNetworkReply *reply)
 
 void MainWindow::on_pushButton_clicked()
 {
-    for (const QTreeWidgetItem &item : ui->treeWidget->selectedItems()) {
-        QString s = item.text(0);
+    for (QTreeWidgetItem *item : ui->treeWidget->selectedItems()) {
+        QString s = item->text(0);
+        qDebug() << s;
     }
 }
