@@ -73,21 +73,22 @@ void MainWindow::deviceDiscovered(const QBluetoothDeviceInfo &device)
 {
     qDebug() << "Found new device:" << device.name() << '(' << device.address().toString() << ')';
     if (device.name() == "BEN") {
-        qDebug() << "Finding service...";
-        QBluetoothServiceDiscoveryAgent *discoveryAgent = new QBluetoothServiceDiscoveryAgent();
-        discoveryAgent->setRemoteAddress(device.address());
-        connect(discoveryAgent, SIGNAL(serviceDiscovered(QBluetoothServiceInfo)),
-                this, SLOT(serviceDiscovered(QBluetoothServiceInfo)));
-        discoveryAgent->start();
+        socket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol, this);
+        socket->connectToService(device.address(), QBluetoothUuid::SerialPort);
+        connect(socket, SIGNAL(readyRead()), this, SLOT(readSocket()));
+        connect(socket, SIGNAL(connected()), this, SLOT(connected()));
     }
 }
 
-void MainWindow::serviceDiscovered(const QBluetoothServiceInfo &service)
-{
-    if (service.serviceName().isEmpty())
-        return;
+void MainWindow::readSocket() {
+    qDebug() << "readSocket()";
+    while (socket && socket->canReadLine()) {
+        QByteArray line = socket->readLine();
+        qDebug() << line;
+    }
+}
 
-    qDebug() << "Found service: " << service.serviceName();
-    socket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol);
-    socket->connectToService(service);
+void MainWindow::connected() {
+    qDebug() << "connected";
+    socket->write("Hello\r\n", 7);
 }

@@ -31,7 +31,8 @@ private slots:
     void on_pushButton_clicked();
     void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
     void deviceDiscovered(const QBluetoothDeviceInfo &device);
-    void serviceDiscovered(const QBluetoothServiceInfo &service);
+    void readSocket();
+    void connected();
 };
 
 #endif // MAINWINDOW_H
