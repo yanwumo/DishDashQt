@@ -34,7 +34,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::orderRequest()
 {
-    qDebug() << "Request";
+    qDebug() << "Request1";
     manager1->get(QNetworkRequest(QUrl("http://localhost/get_orders.php")));
 }
 
@@ -68,8 +68,10 @@ void MainWindow::replyFinished2(QNetworkReply *reply)
     QStringList sl = all.split(' ', QString::SkipEmptyParts);
     qDebug() << sl[0] << sl[1];
     if (sl[0] == "success") {
-        QString instruction = "mmmmmm";
-        instruction << sl[1];
+        ui->pushButton->setEnabled(false);
+        QByteArray instruction = "^^^^^^^";
+        instruction.append(sl[1]);
+        instruction.append("$$$$$$$");
         qDebug() << instruction;
         socket->write(instruction);
     } else {
@@ -82,15 +84,24 @@ void MainWindow::replyFinished2(QNetworkReply *reply)
 void MainWindow::on_pushButton_clicked()
 {
     timer->start(10000);
-    QString table = nullptr;
+    QString table = "";
+    QString request = "";
     for (QTreeWidgetItem *item : ui->treeWidget->selectedItems()) {
-        QString temp = item->text(2);
-        if (table && table != temp) {
+        if (request == "") {
+            request += "?id[]=";
+        } else {
+            request += "&id[]=";
+        }
+        request += item->text(0);
+        if (table != "" && table != item->text(2)) {
             qDebug() << "error";
             return;
         }
-        table = temp;
+        table = item->text(2);
     }
+    qDebug() << "Request2";
+    qDebug() << request;
+    manager2->get(QNetworkRequest(QUrl("http://localhost/finish_orders.php" + request)));
 }
 
 void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *, int)
@@ -110,11 +121,13 @@ void MainWindow::deviceDiscovered(const QBluetoothDeviceInfo &device)
 }
 
 void MainWindow::readSocket() {
+    if (socket == nullptr) return;
+
     qDebug() << "readSocket()";
-    while (socket && socket->canReadLine()) {
-        QByteArray line = socket->readLine();
-        qDebug() << line;
-    }
+    char c;
+    socket->getChar(&c);
+    qDebug() << c;
+    if (c == 'f') ui->pushButton->setEnabled(true);
 }
 
 void MainWindow::connected() {

@@ -10,7 +10,10 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = DishDash
 TEMPLATE = app
+DEPENDPATH += .
 
+target.path = /www/pages
+INSTALLS += target
 
 SOURCES += main.cpp\
         mainwindow.cpp
