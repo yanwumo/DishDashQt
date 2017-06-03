@@ -21,12 +21,13 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    QNetworkAccessManager *manager;
+    QNetworkAccessManager *manager1, *manager2;
     QTimer *timer;
     QBluetoothSocket *socket;
 
 private slots:
-    void replyFinished(QNetworkReply *);
+    void replyFinished1(QNetworkReply *);
+    void replyFinished2(QNetworkReply *);
     void orderRequest();
     void on_pushButton_clicked();
     void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);

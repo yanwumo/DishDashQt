@@ -11,8 +11,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    manager = new QNetworkAccessManager(this);
-    connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
+    manager1 = new QNetworkAccessManager(this);
+    connect(manager1, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished1(QNetworkReply*)));
+    manager2 = new QNetworkAccessManager(this);
+    connect(manager2, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished2(QNetworkReply*)));
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(orderRequest()));
@@ -33,10 +35,10 @@ MainWindow::~MainWindow()
 void MainWindow::orderRequest()
 {
     qDebug() << "Request";
-    manager->get(QNetworkRequest(QUrl("http://localhost/get_orders.php")));
+    manager1->get(QNetworkRequest(QUrl("http://localhost/get_orders.php")));
 }
 
-void MainWindow::replyFinished(QNetworkReply *reply)
+void MainWindow::replyFinished1(QNetworkReply *reply)
 {
     ui->treeWidget->clear();
 
@@ -55,12 +57,39 @@ void MainWindow::replyFinished(QNetworkReply *reply)
     }
 }
 
+void MainWindow::replyFinished2(QNetworkReply *reply)
+{
+    ui->treeWidget->clear();
+
+    QTextCodec *codec = QTextCodec::codecForName("utf8");
+    QString all = codec->toUnicode(reply->readAll());
+    reply->deleteLater();
+
+    QStringList sl = all.split(' ', QString::SkipEmptyParts);
+    qDebug() << sl[0] << sl[1];
+    if (sl[0] == "success") {
+        QString instruction = "mmmmmm";
+        instruction << sl[1];
+        qDebug() << instruction;
+        socket->write(instruction);
+    } else {
+        qDebug() << "Error";
+    }
+    timer->start(10000);
+    orderRequest();
+}
+
 void MainWindow::on_pushButton_clicked()
 {
     timer->start(10000);
+    QString table = nullptr;
     for (QTreeWidgetItem *item : ui->treeWidget->selectedItems()) {
-        QString s = item->text(0);
-        qDebug() << s;
+        QString temp = item->text(2);
+        if (table && table != temp) {
+            qDebug() << "error";
+            return;
+        }
+        table = temp;
     }
 }
 
